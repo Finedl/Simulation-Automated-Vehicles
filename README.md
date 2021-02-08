@@ -1,3 +1,7 @@
+Changes are added in highway_newfunc branch. Details are showed in flow/README.md in highway_newfunc branch.
+Type: git checkout highway_newfunc
+YOU WILL SEE A LOT OF IMPROVEMENT!!
+
 <img src="docs/img/square_logo.png" align="right" width="25%"/>
 
 [![Build Status](https://travis-ci.com/flow-project/flow.svg?branch=master)](https://travis-ci.com/flow-project/flow)
