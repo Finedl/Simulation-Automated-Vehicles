@@ -14,7 +14,7 @@ https://github.com/flow-project/flow
 
 # How to install
 0. (If in China, change source: pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple)
-1. git clone https://github.com/flow-project/flow.git
+1. git clone https://github.com/BingLiHanShuang/flow.git
 2. cd flow
 3. git checkout highway_newfunc
 4. conda env create -f environment.yml
