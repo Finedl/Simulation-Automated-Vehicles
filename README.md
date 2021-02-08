@@ -4,6 +4,9 @@ highway_newfunc
 # Master Fork From
 https://github.com/flow-project/flow
 
+# Introduction Blog(Chinese):
+https://blog.csdn.net/m0_37857300/article/details/113762705
+
 # New Functions
 1. Improve install steps and correct one dependancy bug: pip should be installed first. redis>=3.3.2 is necessary for one package in environment.yml.
 2. Add new parameters for VehicleParams: Enable set length, width, height and vClass for each vehicle. Settings are effective in sumo simulation. (vClass: https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html#abstract_vehicle_class. Potential parameters in future: https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html#available_vtype_attributes)
