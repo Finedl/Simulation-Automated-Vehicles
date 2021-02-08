@@ -21,6 +21,8 @@ WAIT_ON_ERROR = 1
 def _flow(name, vtype, route, **kwargs):
     return E('flow', id=name, route=route, type=vtype, **kwargs)
 
+def _lane(index, **kwargs):
+    return E('lane', index=index, **kwargs)
 
 def _inputs(net=None, rou=None, add=None, gui=None):
     inp = E("input")
@@ -79,6 +81,7 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         self._junction_list = None
         self.__max_speed = None
         self.__length = None  # total length
+        self.__width = None  # total width
         self.__non_internal_length = None  # total length of non-internal edges
         self.rts = None
         self.cfg = None
@@ -275,9 +278,21 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             print('Error in edge length with key', edge_id)
             return -1001
 
+    def edge_width(self, edge_id):
+        """See parent class."""
+        try:
+            return self._edges[edge_id]['width']
+        except KeyError:
+            print('Error in edge width with key', edge_id)
+            return -1001
+
     def length(self):
         """See parent class."""
         return self.__length
+
+    def width(self):
+        """See parent class."""
+        return self.width
 
     def non_internal_length(self):
         """See parent class."""
@@ -432,6 +447,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
         # modify the length, shape, numLanes, and speed values
         for edge in edges:
             edge['length'] = str(edge['length'])
+            if 'width' in edge:
+                edge['width'] = str(edge['width'])
             if 'priority' in edge:
                 edge['priority'] = str(edge['priority'])
             if 'shape' in edge:
@@ -445,8 +462,27 @@ class TraCIKernelNetwork(BaseKernelNetwork):
 
         # xml file for edges
         x = makexml('edges', 'http://sumo.dlr.de/xsd/edges_file.xsd')
-        for edge_attributes in edges:
-            x.append(E('edge', attrib=edge_attributes))
+        if 'lane_list' in edges[0]:
+            backup_lane_list = deepcopy(edges[0]['lane_list']) # This part will rerun three times.
+        else:
+            backup_lane_list = dict()
+        for i in range(len(edges)):
+            lanes = []
+            #print(backup_lane_list)
+            edge_attributes = edges[i]
+            #x.append(E('edge', attrib=edge_attributes))
+            if 'lane_list' in edge_attributes:
+                del edge_attributes['lane_list']
+            if str(i) in backup_lane_list:
+                lanes = backup_lane_list[str(i)]
+            #print(lanes)
+            edgeRoot = E('edge', attrib=edge_attributes)
+            x.append(edgeRoot)
+            if str(i) in backup_lane_list:
+                edge_attributes['lane_list'] = backup_lane_list
+            if lanes != []:
+                for lane_attributes in lanes:
+                    edgeRoot.append(_lane(**lane_attributes))# Potential for specfic disallow(not empty) and width of each lane
         printxml(x, self.net_path + self.edgfn)
 
         # xml file for types: contains the the number of lanes and the speed
@@ -874,6 +910,12 @@ class TraCIKernelNetwork(BaseKernelNetwork):
             else:
                 net_data[edge_id]['speed'] = None
 
+            # check for width
+            if 'width' in edge:
+                net_data[edge_id]['width'] = float(edge.attrib['width'])
+            else:
+                net_data[edge_id]['width'] = None
+
             # if the edge has a type parameters, check that type for a
             # speed and parameter if one was not already found
             if 'type' in edge.attrib and edge.attrib['type'] in types_data:
@@ -889,6 +931,8 @@ class TraCIKernelNetwork(BaseKernelNetwork):
                 net_data[edge_id]['lanes'] += 1
                 if i == 0:
                     net_data[edge_id]['length'] = float(lane.attrib['length'])
+                    if net_data[edge_id]['width'] is None and 'width' in lane.attrib:
+                        net_data[edge_id]['width'] = float(lane.attrib['width'])
                     if net_data[edge_id]['speed'] is None \
                             and 'speed' in lane.attrib:
                         net_data[edge_id]['speed'] = float(

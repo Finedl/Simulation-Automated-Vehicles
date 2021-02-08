@@ -8,12 +8,16 @@ import numpy as np
 ADDITIONAL_NET_PARAMS = {
     # length of the highway
     "length": 1000,
+    # width of the highway ADD 20210206
+    "width": 3.75,
     # number of lanes
     "lanes": 4,
     # speed limit for all edges
     "speed_limit": 30,
     # number of edges to divide the highway into
     "num_edges": 1,
+    # Set specific parameters for each lane in each edge(in index order)
+    "lane_list": [],
     # whether to include a ghost edge. This edge is provided a different speed
     # limit.
     "use_ghost_edge": False,
@@ -104,6 +108,8 @@ class HighwayNetwork(Network):
     def specify_edges(self, net_params):
         """See parent class."""
         length = net_params.additional_params["length"]
+        width = net_params.additional_params["width"]
+        lane_list = net_params.additional_params["lane_list"]
         num_edges = net_params.additional_params.get("num_edges", 1)
         segment_length = length/float(num_edges)
         end_length = net_params.additional_params["boundary_cell_length"]
@@ -115,7 +121,9 @@ class HighwayNetwork(Network):
                 "type": "highwayType",
                 "from": "edge_{}".format(i),
                 "to": "edge_{}".format(i+1),
-                "length": segment_length
+                "length": segment_length,
+                "width": width,
+                "lane_list": lane_list
             }]
 
         if self.net_params.additional_params["use_ghost_edge"]:
@@ -124,7 +132,8 @@ class HighwayNetwork(Network):
                 "type": "highway_end",
                 "from": "edge_{}".format(num_edges),
                 "to": "edge_{}".format(num_edges + 1),
-                "length": end_length
+                "length": end_length,
+                "width": width
             }]
 
         return edges

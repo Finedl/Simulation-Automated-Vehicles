@@ -255,6 +255,10 @@ class VehicleParams:
 
     def add(self,
             veh_id,
+            length=5,
+            width=2,
+            height=1.5,
+            vClass = "passenger",
             acceleration_controller=(SimCarFollowingController, {}),
             lane_change_controller=(SimLaneChangeController, {}),
             routing_controller=None,
@@ -301,12 +305,21 @@ class VehicleParams:
         type_params = {}
         type_params.update(car_following_params.controller_params)
         type_params.update(lane_change_params.controller_params)
+        
+        type_params['length'] = length
+        type_params['width'] = width
+        type_params['height'] = height
+        type_params['vClass'] = vClass
 
         # This dict will be used when trying to introduce new vehicles into
         # the network via a Flow. It is passed to the vehicle kernel object
         # during environment instantiation.
         self.type_parameters[veh_id] = \
             {"acceleration_controller": acceleration_controller,
+             "length": length,
+             "width": width,
+             "height": height,
+             "vClass": vClass,
              "lane_change_controller": lane_change_controller,
              "routing_controller": routing_controller,
              "initial_speed": initial_speed,
@@ -321,6 +334,14 @@ class VehicleParams:
         self.initial.append({
             "veh_id":
                 veh_id,
+            "length":
+                length,
+            "width":
+                width,
+            "height":
+                height,
+            "vClass":
+                vClass,
             "acceleration_controller":
                 acceleration_controller,
             "lane_change_controller":
