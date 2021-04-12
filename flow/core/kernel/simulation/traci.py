@@ -122,6 +122,8 @@ class TraCISimulation(KernelSimulation):
                     "relative_position": kv.get_position(veh_id),
                     "x": position[0],
                     "y": position[1],
+                    "type": kv.get_type(veh_id),
+                    "length": kv.get_length(veh_id),
                     "headway": kv.get_headway(veh_id),
                     "leader_id": kv.get_leader(veh_id),
                     "follower_id": kv.get_follower(veh_id),
@@ -290,6 +292,8 @@ class TraCISimulation(KernelSimulation):
         stored_ids = [
             "x",
             "y",
+            "type",
+            "length",
             "speed",
             "headway",
             "leader_id",

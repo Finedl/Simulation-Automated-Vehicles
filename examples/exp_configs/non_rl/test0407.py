@@ -9,22 +9,43 @@ from flow.core.params import SimParams
 from flow.controllers import IDMController, SimLaneChangeController, RLController
 from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, SumoLaneChangeParams, SumoCarFollowingParams
 from flow.core.params import VehicleParams, InFlows
-from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
-from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
-from flow.envs import LaneChangeAccelEnv
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.networks.highway import HighwayNetwork
+from flow.envs.multiagent import MultiAgentHighwayPOEnv
+
+additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+additional_env_params.update({
+    'max_accel': 4.96,
+    'max_decel': 4.5,
+    'target_velocity': 30
+})
 
 vehicles = VehicleParams()
 
 vehicles.add(
-    veh_id="Rlcar",# Lincoln MKC 4552*1864*1654 THIS IS TYPE NAME
-    length = 4.552,
-    width = 1.864,
-    height = 1.654,
+    veh_id="Elehumancar30",# Tesla Model3(CN) 4694*1850*1443 max:120km/h
+    length = 4.694,
+    width = 1.850,
+    height = 1.443,
     vClass = "passenger",
-    #color = "1,0,0",
-    acceleration_controller=(IDMController, {}), # RLController
+    color = "1,1,1",
+    acceleration_controller=(IDMController,{'v0':30}),# desirable velocity 110km/h
+    car_following_params=SumoCarFollowingParams(
+        speed_mode="obey_safe_speed", # default
+        max_speed=30,
+        accel=4.960,
+        decel=4.5, 
+        sigma=0.5, 
+        tau=1.0, 
+        min_gap=2.5,
+        speed_factor=1.0, 
+        speed_dev=0.1, 
+        impatience=0.5, 
+        car_follow_model="IDM"
+    ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="only_speed_gain_safe"
+        lane_change_mode="sumo_default",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
+        model="LC2013" # Lane-changing model for sublane-simulation [https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html] [https://sumo.dlr.de/docs/Simulation/SublaneModel.html]
     ),
     num_vehicles=0)
 
@@ -34,6 +55,7 @@ vehicles.add(
     width = 1.806,
     height = 1.474,
     vClass = "passenger",
+    color = "0,0,1",
     #v0 : desirable velocity, in m/s (default: 30) in flow/flow/controllers/car_following_models.py 352
     acceleration_controller=(IDMController,{'v0':30.556}),# desirable velocity 110km/h
     car_following_params=SumoCarFollowingParams(
@@ -50,7 +72,7 @@ vehicles.add(
         car_follow_model="IDM"
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="only_speed_gain_safe",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
+        lane_change_mode="sumo_default",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
         model="LC2013" # Lane-changing model for sublane-simulation [https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html] [https://sumo.dlr.de/docs/Simulation/SublaneModel.html]
     ),
     num_vehicles=0)
@@ -77,7 +99,7 @@ vehicles.add(
         car_follow_model="IDM"
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="only_speed_gain_safe",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
+        lane_change_mode="sumo_default",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
         model="LC2013" # Lane-changing model for sublane-simulation [https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html] [https://sumo.dlr.de/docs/Simulation/SublaneModel.html]
     ),
     num_vehicles=0)
@@ -104,7 +126,7 @@ vehicles.add(
         car_follow_model="IDM"
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="only_speed_gain_safe",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
+        lane_change_mode="sumo_default",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
         model="LC2013" # Lane-changing model for sublane-simulation [https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html] [https://sumo.dlr.de/docs/Simulation/SublaneModel.html]
     ),
     num_vehicles=0)
@@ -131,7 +153,7 @@ vehicles.add(
         car_follow_model="IDM"
     ),
     lane_change_params=SumoLaneChangeParams(
-        lane_change_mode="only_speed_gain_safe",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
+        lane_change_mode="sumo_default",# sumo_default, only_speed_gain_safe, only_strategic_safe, only_cooperative_safe
         model="LC2013" # Lane-changing model for sublane-simulation [https://sumo.dlr.de/docs/Definition_of_Vehicles,_Vehicle_Types,_and_Routes.html] [https://sumo.dlr.de/docs/Simulation/SublaneModel.html]
     ),
     num_vehicles=0)
@@ -139,47 +161,48 @@ vehicles.add(
 env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
 
 inflow = InFlows() #1.5:0.5:1:1  0.5:1.5:1:1  0.5:0.5:1:2  0.5:0.5:2:1// 3498.5*(0 0.25 0.5 0.75) 3498.5*()~(1.5:0.5:1:1)
+
 inflow.add(
-    veh_type="Rlcar",
+    veh_type="Elehumancar30",
     edge="highway_0",
-    vehs_per_hour=875,#120 875
-    depart_lane="random",# the index of the lane, starting with rightmost=0
+    vehs_per_hour=875,
+    depart_lane="free",#free random allowed best first
     depart_speed=30)
-    
+
 inflow.add(
     veh_type="Gashumancar",
     edge="highway_0",
-    vehs_per_hour=984,#1312
-    depart_lane="random",#free random allowed best first
-    depart_speed=30)
+    vehs_per_hour=984,
+    depart_lane="free",#free random allowed best first
+    depart_speed=30.556)
 
 inflow.add(
     veh_type="Elehumancar",
     edge="highway_0",
-    vehs_per_hour=328,#437 317 1192 1312 328
-    depart_lane="random",#free random allowed best first
-    depart_speed=30)
+    vehs_per_hour=328,
+    depart_lane="free",#free random allowed best first
+    depart_speed=30.556)
     
 inflow.add(
     veh_type="Bushuman",
     edge="highway_0",
     vehs_per_hour=437,#6997/2/4/1.5
-    depart_lane="random",
-    depart_speed=26.4)
+    depart_lane="free",
+    depart_speed=27.778)
     
 inflow.add(
     veh_type="Truckhuman",
     edge="highway_0",
-    vehs_per_hour=328,#6997/2/4/2
-    depart_lane="random",
+    vehs_per_hour=328,#6997/2/4/2 80562.018 2769
+    depart_lane="free",
     depart_speed=25)
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='test0205',
+    exp_tag='test0407',
 
     # name of the flow environment the experiment is running on
-    env_name=LaneChangeAccelEnv,
+    env_name=MultiAgentHighwayPOEnv,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,
@@ -187,36 +210,27 @@ flow_params = dict(
     # simulator that is used by the experiment
     simulator='traci',
 
-    # sumo-related parameters (see flow.core.params.SumoParams)
-    #sim=SumoParams(
-        #render=True,
-        #lateral_resolution=1.0,
-    #),
-    sim=SumoParams(
-        restart_instance=True, 
-        sim_step=0.1, # seconds per simulation step, default
-        emission_path="./data/",
-        render=True, # delegate rendering to sumo-gui for back-compatibility(Color)
-        #lateral_resolution=3.75,
-        sight_radius=120, # sets the radius of observation for RL vehicles (meter)
-        pxpm=3, # specifies rendering resolution (pixel / meter)
-        show_radius=True, # specifies whether to render the radius of RL observation
-        save_render=True # specifies whether to save rendering data to disk
-    ),
-
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=5000, # number of steps per rollouts
-        additional_params=ADDITIONAL_ENV_PARAMS.copy(),
+        horizon=2000,
+        warmup_steps=2200,
+        sims_per_step=1,  # do not put more than one
+        additional_params=additional_env_params,
+    ),
+
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sim=SumoParams(
+        sim_step=0.1, # seconds per simulation step, default
+        render=False, # delegate rendering to sumo-gui for back-compatibility(Color)
+        restart_instance=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        #additional_params=ADDITIONAL_NET_PARAMS.copy(),
         additional_params={
-            'length': 6000,
+            'length': 2000,
             'width': 3.75,
             'lanes': 4,# highway_0_0(right) highway_0_3(left)
             'speed_limit': 33.333,

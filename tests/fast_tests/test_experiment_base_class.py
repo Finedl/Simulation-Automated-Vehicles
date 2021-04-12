@@ -186,6 +186,8 @@ class TestConvertToCSV(unittest.TestCase):
             "id",
             "x",
             "y",
+            "type",
+            "length",
             "speed",
             "headway",
             "leader_id",

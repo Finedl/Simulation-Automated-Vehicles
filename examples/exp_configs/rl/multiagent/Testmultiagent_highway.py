@@ -1,28 +1,53 @@
-"""Example of an open multi-lane network with human-driven vehicles."""
+"""Multi-agent highway with ramps example.
 
-import traci
-from flow.core.kernel.vehicle import KernelVehicle
-from flow.core.kernel.vehicle import TraCIVehicle
-from flow.core.kernel import Kernel
-from flow.core.params import SimParams
+Trains a non-constant number of agents, all sharing the same policy, on the
+highway with ramps network.
+"""
+from ray.rllib.agents.ppo.ppo_policy import PPOTFPolicy
+from flow.controllers import IDMController, RLController
+from flow.core.params import EnvParams, NetParams, InitialConfig, InFlows, \
+                             VehicleParams, SumoParams, \
+                             SumoCarFollowingParams, SumoLaneChangeParams
+from flow.envs.ring.accel import ADDITIONAL_ENV_PARAMS
+from flow.networks.highway import HighwayNetwork
+from flow.envs.multiagent import MultiAgentHighwayPOEnv
+from flow.utils.registry import make_create_env
+from ray.tune.registry import register_env
 
-from flow.controllers import IDMController, SimLaneChangeController, RLController
-from flow.core.params import SumoParams, EnvParams, NetParams, InitialConfig, SumoLaneChangeParams, SumoCarFollowingParams
-from flow.core.params import VehicleParams, InFlows
-from flow.envs.ring.lane_change_accel import ADDITIONAL_ENV_PARAMS
-from flow.networks.highway import HighwayNetwork, ADDITIONAL_NET_PARAMS
-from flow.envs import LaneChangeAccelEnv
+
+# SET UP PARAMETERS FOR THE SIMULATION
+
+# number of training iterations
+N_TRAINING_ITERATIONS = 200
+# number of rollouts per training iteration
+N_ROLLOUTS = 20
+# number of steps per rollout
+HORIZON = 2000
+# number of parallel workers
+N_CPUS = 8
+
+# SET UP PARAMETERS FOR THE ENVIRONMENT
+additional_env_params = ADDITIONAL_ENV_PARAMS.copy()
+additional_env_params.update({
+    'max_accel': 4.96,
+    'max_decel': 4.5,
+    'target_velocity': 30
+})
+
+# CREATE VEHICLE TYPES AND INFLOWS
 
 vehicles = VehicleParams()
+inflow = InFlows()
 
+# autonomous vehicles
 vehicles.add(
     veh_id="Rlcar",# Lincoln MKC 4552*1864*1654 THIS IS TYPE NAME
     length = 4.552,
     width = 1.864,
     height = 1.654,
     vClass = "passenger",
-    #color = "1,0,0",
-    acceleration_controller=(IDMController, {}), # RLController
+    color = "1,0,0",
+    acceleration_controller=(RLController, {}), # RLController
     lane_change_params=SumoLaneChangeParams(
         lane_change_mode="only_speed_gain_safe"
     ),
@@ -34,6 +59,7 @@ vehicles.add(
     width = 1.806,
     height = 1.474,
     vClass = "passenger",
+    color = "0,0,1",
     #v0 : desirable velocity, in m/s (default: 30) in flow/flow/controllers/car_following_models.py 352
     acceleration_controller=(IDMController,{'v0':30.556}),# desirable velocity 110km/h
     car_following_params=SumoCarFollowingParams(
@@ -136,50 +162,52 @@ vehicles.add(
     ),
     num_vehicles=0)
 
-env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
-
-inflow = InFlows() #1.5:0.5:1:1  0.5:1.5:1:1  0.5:0.5:1:2  0.5:0.5:2:1// 3498.5*(0 0.25 0.5 0.75) 3498.5*()~(1.5:0.5:1:1)
+# add autonomous vehicles on the highway
+# they will stay on the highway, i.e. they won't exit through the off-ramps
 inflow.add(
     veh_type="Rlcar",
     edge="highway_0",
-    vehs_per_hour=875,#120 875
-    depart_lane="random",# the index of the lane, starting with rightmost=0
-    depart_speed=30)
+    vehs_per_hour=875,
+    depart_lane="free",# the index of the lane, starting with rightmost=0
+    depart_speed="max")
     
 inflow.add(
     veh_type="Gashumancar",
     edge="highway_0",
-    vehs_per_hour=984,#1312
-    depart_lane="random",#free random allowed best first
-    depart_speed=30)
+    vehs_per_hour=984,
+    depart_lane="free",#free random allowed best first
+    depart_speed=30.556)
 
 inflow.add(
     veh_type="Elehumancar",
     edge="highway_0",
-    vehs_per_hour=328,#437 317 1192 1312 328
-    depart_lane="random",#free random allowed best first
-    depart_speed=30)
+    vehs_per_hour=328,
+    depart_lane="free",#free random allowed best first
+    depart_speed=30.556)
     
 inflow.add(
     veh_type="Bushuman",
     edge="highway_0",
     vehs_per_hour=437,#6997/2/4/1.5
-    depart_lane="random",
-    depart_speed=26.4)
+    depart_lane="free",
+    depart_speed=27.778)
     
 inflow.add(
     veh_type="Truckhuman",
     edge="highway_0",
-    vehs_per_hour=328,#6997/2/4/2
-    depart_lane="random",
+    vehs_per_hour=328,#6997/2/4/2 80562.018 2769
+    depart_lane="free",
     depart_speed=25)
+
+
+# SET UP FLOW PARAMETERS
 
 flow_params = dict(
     # name of the experiment
-    exp_tag='test0205',
+    exp_tag='Testmultiagent_highway',
 
     # name of the flow environment the experiment is running on
-    env_name=LaneChangeAccelEnv,
+    env_name=MultiAgentHighwayPOEnv,
 
     # name of the network class the experiment is running on
     network=HighwayNetwork,
@@ -187,36 +215,27 @@ flow_params = dict(
     # simulator that is used by the experiment
     simulator='traci',
 
-    # sumo-related parameters (see flow.core.params.SumoParams)
-    #sim=SumoParams(
-        #render=True,
-        #lateral_resolution=1.0,
-    #),
-    sim=SumoParams(
-        restart_instance=True, 
-        sim_step=0.1, # seconds per simulation step, default
-        emission_path="./data/",
-        render=True, # delegate rendering to sumo-gui for back-compatibility(Color)
-        #lateral_resolution=3.75,
-        sight_radius=120, # sets the radius of observation for RL vehicles (meter)
-        pxpm=3, # specifies rendering resolution (pixel / meter)
-        show_radius=True, # specifies whether to render the radius of RL observation
-        save_render=True # specifies whether to save rendering data to disk
-    ),
-
     # environment related parameters (see flow.core.params.EnvParams)
     env=EnvParams(
-        horizon=5000, # number of steps per rollouts
-        additional_params=ADDITIONAL_ENV_PARAMS.copy(),
+        horizon=HORIZON,
+        warmup_steps=200,
+        sims_per_step=1,  # do not put more than one
+        additional_params=additional_env_params,
+    ),
+
+    # sumo-related parameters (see flow.core.params.SumoParams)
+    sim=SumoParams(
+        sim_step=0.1, # seconds per simulation step, default
+        render=False, # delegate rendering to sumo-gui for back-compatibility(Color)
+        restart_instance=True
     ),
 
     # network-related parameters (see flow.core.params.NetParams and the
     # network's documentation or ADDITIONAL_NET_PARAMS component)
     net=NetParams(
         inflows=inflow,
-        #additional_params=ADDITIONAL_NET_PARAMS.copy(),
         additional_params={
-            'length': 6000,
+            'length': 2000,
             'width': 3.75,
             'lanes': 4,# highway_0_0(right) highway_0_3(left)
             'speed_limit': 33.333,
@@ -256,8 +275,28 @@ flow_params = dict(
 
     # parameters specifying the positioning of vehicles upon initialization/
     # reset (see flow.core.params.InitialConfig)
-    initial=InitialConfig(
-        spacing="uniform",
-        shuffle=True,
-    ),
+    initial=InitialConfig(),
 )
+
+
+# SET UP RLLIB MULTI-AGENT FEATURES
+
+create_env, env_name = make_create_env(params=flow_params, version=0)
+
+# register as rllib env
+register_env(env_name, create_env)
+
+# multiagent configuration
+test_env = create_env()
+obs_space = test_env.observation_space
+act_space = test_env.action_space
+
+
+POLICY_GRAPHS = {'av': (PPOTFPolicy, obs_space, act_space, {})}
+
+POLICIES_TO_TRAIN = ['av']
+
+
+def policy_mapping_fn(_):
+    """Map a policy in RLlib."""
+    return 'av'
