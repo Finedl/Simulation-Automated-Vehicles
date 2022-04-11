@@ -1,6 +1,3 @@
-Changes are added in highway_newfunc branch. Details are showed in flow/README.md in highway_newfunc branch.
-Type: git checkout highway_newfunc
-YOU WILL SEE A LOT OF IMPROVEMENT!!
 
 # Simulation-Automated-Vehicles
 we presented the updating Connected and Automated Vehicles (CAVs) model as the scanner of heterogeneous traffic flow, which uses various sensors to detect the characteristics of traffic flow in several traffic scenes on the roads. The model contains the hardware platform, software algorithm of CAV, and the analysis of traffic flow detection and simulation by Flow Project, where the driving of vehicles is mainly controlled by Reinforcement Learning (RL). Finally, the effectiveness of the proposed model and the corresponding swarm intelligence strategy is evaluated through simulation experiments. The results showed that the traffic flow scanning, tracking, and data recording performed continuously by CAVs are effective. The increase in the penetration rate of CAVs in the overall traffic flow has a significant effect on vehicle detection and identification. In addition, the vehicle occlusion rate is independent of the CAV lane position in all cases. The complete street scanner is a new technology that realizes the perception of the human settlement environment with the help of the Internet of Vehicles based on 5G communications and sensors. Although there are some shortcomings in the experiment, it still provides an experimental reference for the development of smart vehicles.
@@ -37,6 +34,7 @@ The road shape in the Project is limited, and the creation of new roads should b
 
 (1) Change the source code to increase the function of changing the length of the body
 Change the def add() function in class VehicleParams in params.py in the flow/core directory, and add these lines:
+
 `
 def add(self,
             veh_id,
@@ -157,7 +155,8 @@ def add(self,
 `
 # Change the Python script
 highway.py:
-`1.	"""Example of an open multi-lane network with human-driven vehicles."""
+`
+1.	"""Example of an open multi-lane network with human-driven vehicles."""
 2.	 
 3.	from flow.controllers import IDMController, SimLaneChangeController, ContinuousRouter, RLController
 4.	from flow.core.experiment import Experiment
@@ -344,6 +343,7 @@ highway.py:
 185.	    # run for a set number of rollouts / time steps
 186.	    #exp.run(1, 1000, convert_to_csv = False)
 187.	    exp.run(1, 5000, convert_to_csv = True)
+
 `
 HighwayScenario() can be seen that this is a function specially set up for the one-way four-lane highway scene. Because the Flow Project is intended to train reinforcement learning vehicles in simple scenarios (for complex scenarios, please consider games such as GTA), there is no overly complicated vehicle network.
 
