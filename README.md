@@ -1,8 +1,22 @@
 
 # Simulation-Automated-Vehicles
 we presented the updating Connected and Automated Vehicles (CAVs) model as the scanner of heterogeneous traffic flow, which uses various sensors to detect the characteristics of traffic flow in several traffic scenes on the roads. The model contains the hardware platform, software algorithm of CAV, and the analysis of traffic flow detection and simulation by Flow Project, where the driving of vehicles is mainly controlled by Reinforcement Learning (RL). Finally, the effectiveness of the proposed model and the corresponding swarm intelligence strategy is evaluated through simulation experiments. The results showed that the traffic flow scanning, tracking, and data recording performed continuously by CAVs are effective. The increase in the penetration rate of CAVs in the overall traffic flow has a significant effect on vehicle detection and identification. In addition, the vehicle occlusion rate is independent of the CAV lane position in all cases. The complete street scanner is a new technology that realizes the perception of the human settlement environment with the help of the Internet of Vehicles based on 5G communications and sensors. Although there are some shortcomings in the experiment, it still provides an experimental reference for the development of smart vehicles.
+![image](https://user-images.githubusercontent.com/67223039/162754304-7778f415-21e5-42fb-b89e-7c1229ca7bcd.png)
+
+# Getting involved
+
+We welcome your contributions.
+
+# Citing
+
+If you use this for academic research, you are highly encouraged to cite our paper:
+
+The Scanner of Heterogeneous Traffic Flow in Smart Cities by an Updating Model of Connected and Automated Vehicles
 
 # How to use？
+
+Only in the Ubuntu
+
 1. Install anaconda2 (refer to anaconda official website https://www.anaconda.com/), then create a dedicated operating environment in the flow directory and install dependencies
 conda env create -f environment.yml
 source activate flow
@@ -156,204 +170,286 @@ def add(self,
 # Change the Python script
 highway.py:
 `
-1.	"""Example of an open multi-lane network with human-driven vehicles."""
-2.	 
-3.	from flow.controllers import IDMController, SimLaneChangeController, ContinuousRouter, RLController
-4.	from flow.core.experiment import Experiment
-5.	from flow.core.params import SumoParams, EnvParams, \
-6.	    NetParams, InitialConfig, InFlows, SumoLaneChangeParams, SumoCarFollowingParams
-7.	from flow.core.params import VehicleParams
-8.	from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
-9.	    ADDITIONAL_ENV_PARAMS
-10.	from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
-11.	 
-12.	#from flow.core.params import SimParams
-13.	 
-14.	 
-15.	def highway_example(render=None):
-16.	    """
-17.	    Perform a simulation of vehicles on a highway.
-18.	    Parameters
-19.	    ----------
-20.	    render : bool, optional
-21.	        specifies whether to use the gui during execution
-22.	    Returns
-23.	    -------
-24.	    exp: flow.core.experiment.Experiment
-25.	        A non-rl experiment demonstrating the performance of human-driven
-26.	        vehicles on a figure eight.
-27.	    """
-28.	    sim_params = SumoParams(restart_instance=True, sim_step=0.1, emission_path="./data/",render=True, sight_radius=30, pxpm=3, show_radius=True)
-29.	 
-30.	    if render is not None:
-31.	        sim_params.render = render
-32.	 
-33.	    vehicles = VehicleParams()
-34.	    
-35.	    vehicles.add(
-36.	        veh_id="rlcar",# Lincoln MKC 4552*1864*1654
-37.	        length = 4.552,
-38.	        acceleration_controller=(RLController, {}),
-39.	        car_following_params=SumoCarFollowingParams(
-40.	            speed_mode="obey_safe_speed",
-41.	        ),
-42.	        initial_speed=0,
-43.	        num_vehicles=1)
-44.	    
-45.	    vehicles.add(
-46.	        veh_id="humancar",# Volkswagen LAVIDA 4670*1806*1474 max:120km/h
-47.	        length = 4.67,
-48.	        #v0 : desirable velocity, in m/s (default: 30) in flow/flow/controllers/car_following_models.py 352
-49.	        acceleration_controller=(IDMController,{'v0':32}),# 115km/h
-50.	        lane_change_controller=(SimLaneChangeController, {}),
-51.	        lane_change_params=SumoLaneChangeParams(
-52.	            lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
-53.	        ),
-54.	        num_vehicles=1)
-55.	    
-56.	    vehicles.add(
-57.	        veh_id="humanbus_lane2",# YUTONG ZK6826BEV 8245*2500*3240 max:100km/h
-58.	        length = 8.245,
-59.	        acceleration_controller=(IDMController, {'v0':26.4}),# 95km/h
-60.	        #lane_change_controller=(SimLaneChangeController, {}),
-61.	        #lane_change_params=SumoLaneChangeParams(
-62.	        #    lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
-63.	        #),
-64.	        num_vehicles=1)
-65.	    vehicles.add(
-66.	        veh_id="humanbus_lane1",# YUTONG ZK6826BEV 8245*2500*3240 max:100km/h
-67.	        length = 8.245,
-68.	        acceleration_controller=(IDMController, {'v0':26.4}),# 95km/h
-69.	        num_vehicles=1)
-70.	    vehicles.add(
-71.	        veh_id="humanbus_lane0",# YUTONG ZK6826BEV 8245*2500*3240 max:100km/h
-72.	        length = 8.245,
-73.	        acceleration_controller=(IDMController, {'v0':26.4}),# 95km/h
-74.	        num_vehicles=1)
-75.	        
-76.	    vehicles.add(
-77.	        veh_id="humantruck_lane2",# FOTON BJ5319XXY-AB 12000*2550*3950 max:100km/h
-78.	        length = 12,
-79.	        acceleration_controller=(IDMController, {'v0':25}),# 90km/h
-80.	        #lane_change_controller=(SimLaneChangeController, {}),
-81.	        #lane_change_params=SumoLaneChangeParams(
-82.	        #    lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
-83.	        #),
-84.	        num_vehicles=1)
-85.	    vehicles.add(
-86.	        veh_id="humantruck_lane1",# FOTON BJ5319XXY-AB 12000*2550*3950 max:100km/h
-87.	        length = 12,
-88.	        acceleration_controller=(IDMController, {'v0':25}),# 90km/h
-89.	        num_vehicles=1)
-90.	    vehicles.add(
-91.	        veh_id="humantruck_lane0",# FOTON BJ5319XXY-AB 12000*2550*3950 max:100km/h
-92.	        length = 12,
-93.	        acceleration_controller=(IDMController, {'v0':25}),# 90km/h
-94.	        num_vehicles=1)
-95.	 
-96.	    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
-97.	 
-98.	    inflow = InFlows()
-99.	    
-100.	    inflow.add(
-101.	        veh_type="rlcar",
-102.	        edge="highway_0",
-103.	        #probability=0.025,# 0.25 probability for emitting a vehicle each second (not together with vehsPerHour or period)
-104.	        vehs_per_hour=250,
-105.	        departLane=3,# the index of the lane, starting with rightmost=0
-106.	        departSpeed=30)
-107.	    
-108.	    inflow.add(
-109.	        veh_type="humancar",
-110.	        edge="highway_0",
-111.	        #probability=0.85,# 0.25 probability for emitting a vehicle each second (not together with vehsPerHour or period)
-112.	        vehs_per_hour=15000,
-113.	        departLane="random",#free random allowed best first
-114.	        departSpeed=30)
-115.	    
-116.	    inflow.add(
-117.	        veh_type="humanbus_lane2",
-118.	        edge="highway_0",
-119.	        #probability=0.1,
-120.	        vehs_per_hour=486,
-121.	        departLane=2,
-122.	        departSpeed=26.4)
-123.	    inflow.add(
-124.	        veh_type="humanbus_lane1",
-125.	        edge="highway_0",
-126.	        #probability=0.1,
-127.	        vehs_per_hour=486,
-128.	        departLane=1,
-129.	        departSpeed=26.4)
-130.	    inflow.add(
-131.	        veh_type="humanbus_lane0",
-132.	        edge="highway_0",
-133.	        #probability=0.1,
-134.	        vehs_per_hour=486,
-135.	        departLane=0,
-136.	        departSpeed=26.4)
-137.	    
-138.	    inflow.add(
-139.	        veh_type="humantruck_lane2",
-140.	        edge="highway_0",
-141.	        #probability=0.05,
-142.	        vehs_per_hour=486,
-143.	        departLane=2,
-144.	        departSpeed=25)
-145.	    inflow.add(
-146.	        veh_type="humantruck_lane1",
-147.	        edge="highway_0",
-148.	        #probability=0.05,
-149.	        vehs_per_hour=486,
-150.	        departLane=1,
-151.	        departSpeed=25)
-152.	    inflow.add(
-153.	        veh_type="humantruck_lane0",
-154.	        edge="highway_0",
-155.	        #probability=0.05,
-156.	        vehs_per_hour=486,
-157.	        departLane=0,
-158.	        departSpeed=25)
-159.	 
-160.	    initial_config = InitialConfig(spacing="uniform", shuffle=True)# initial position in road
-161.	 
-162.	    scenario = HighwayScenario(#3:110-120 2:90-120 3:90-120 4:60-120 [G1503 2019.5 daily car:180000 bus/truck:70000]
-163.	        name="highway",
-164.	        vehicles=vehicles,
-165.	        net_params=NetParams(
-166.	                inflows=inflow,
-167.	                additional_params={
-168.	                    'length': 6000,
-169.	                    'lanes': 4,
-170.	                    'speed_limit': 33.3,
-171.	                    'num_edges': 1
-172.	                }),
-173.	        initial_config=initial_config)
-174.	    
-175.	 
-176.	    env = LaneChangeAccelEnv(env_params, sim_params, scenario)
-177.	 
-178.	    return Experiment(env)
-179.	 
-180.	 
-181.	if __name__ == "__main__":
-182.	    # import the experiment variable
-183.	    exp = highway_example()
-184.	 
-185.	    # run for a set number of rollouts / time steps
-186.	    #exp.run(1, 1000, convert_to_csv = False)
-187.	    exp.run(1, 5000, convert_to_csv = True)
+"""Example of an open multi-lane network with human-driven vehicles."""
+ 
+from flow.controllers import IDMController, SimLaneChangeController, ContinuousRouter, RLController
+from flow.core.experiment import Experiment
+from flow.core.params import SumoParams, EnvParams, \
+    NetParams, InitialConfig, InFlows, SumoLaneChangeParams, SumoCarFollowingParams
+from flow.core.params import VehicleParams
+from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
+    ADDITIONAL_ENV_PARAMS
+from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
+ 
+#from flow.core.params import SimParams
+ 
+ 
+def highway_example(render=None):
+    """
+    Perform a simulation of vehicles on a highway.
+    Parameters
+    ----------
+    render : bool, optional
+        specifies whether to use the gui during execution
+    Returns
+    -------
+    exp: flow.core.experiment.Experiment
+        A non-rl experiment demonstrating the performance of human-driven
+        vehicles on a figure eight.
+    """
+    sim_params = SumoParams(restart_instance=True, sim_step=0.1, emission_path="./data/",render=True, sight_radius=30, pxpm=3, show_radius=True)
+ 
+    if render is not None:
+        sim_params.render = render
+ 
+    vehicles = VehicleParams()
+    
+    vehicles.add(
+        veh_id="rlcar",# Lincoln MKC 4552*1864*1654
+        length = 4.552,
+        acceleration_controller=(RLController, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="obey_safe_speed",
+        ),
+        initial_speed=0,
+        num_vehicles=1)
+    
+    vehicles.add(
+        veh_id="humancar",# Volkswagen LAVIDA 4670*1806*1474 max:120km/h
+        length = 4.67,
+        #v0 : desirable velocity, in m/s (default: 30) in flow/flow/controllers/car_following_models.py 352
+        acceleration_controller=(IDMController,{'v0':32}),# 115km/h
+        lane_change_controller=(SimLaneChangeController, {}),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
+        ),
+        num_vehicles=1)
+    
+    vehicles.add(
+        veh_id="humanbus_lane2",# YUTONG ZK6826BEV 8245*2500*3240 max:100km/h
+        length = 8.245,
+        acceleration_controller=(IDMController, {'v0':26.4}),# 95km/h
+        #lane_change_controller=(SimLaneChangeController, {}),
+        #lane_change_params=SumoLaneChangeParams(
+        #    lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
+        #),
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="humanbus_lane1",# YUTONG ZK6826BEV 8245*2500*3240 max:100km/h
+        length = 8.245,
+        acceleration_controller=(IDMController, {'v0':26.4}),# 95km/h
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="humanbus_lane0",# YUTONG ZK6826BEV 8245*2500*3240 max:100km/h
+        length = 8.245,
+        acceleration_controller=(IDMController, {'v0':26.4}),# 95km/h
+        num_vehicles=1)
+        
+    vehicles.add(
+        veh_id="humantruck_lane2",# FOTON BJ5319XXY-AB 12000*2550*3950 max:100km/h
+        length = 12,
+        acceleration_controller=(IDMController, {'v0':25}),# 90km/h
+        #lane_change_controller=(SimLaneChangeController, {}),
+        #lane_change_params=SumoLaneChangeParams(
+        #    lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
+        #),
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="humantruck_lane1",# FOTON BJ5319XXY-AB 12000*2550*3950 max:100km/h
+        length = 12,
+        acceleration_controller=(IDMController, {'v0':25}),# 90km/h
+        num_vehicles=1)
+    vehicles.add(
+        veh_id="humantruck_lane0",# FOTON BJ5319XXY-AB 12000*2550*3950 max:100km/h
+        length = 12,
+        acceleration_controller=(IDMController, {'v0':25}),# 90km/h
+        num_vehicles=1)
+ 
+    env_params = EnvParams(additional_params=ADDITIONAL_ENV_PARAMS)
+ 
+    inflow = InFlows()
+    
+    inflow.add(
+        veh_type="rlcar",
+        edge="highway_0",
+        #probability=0.025,# 0.25 probability for emitting a vehicle each second (not together with vehsPerHour or period)
+        vehs_per_hour=250,
+        departLane=3,# the index of the lane, starting with rightmost=0
+        departSpeed=30)
+    
+    inflow.add(
+        veh_type="humancar",
+        edge="highway_0",
+        #probability=0.85,# 0.25 probability for emitting a vehicle each second (not together with vehsPerHour or period)
+        vehs_per_hour=15000,
+        departLane="random",#free random allowed best first
+        departSpeed=30)
+    
+    inflow.add(
+        veh_type="humanbus_lane2",
+        edge="highway_0",
+        #probability=0.1,
+        vehs_per_hour=486,
+        departLane=2,
+        departSpeed=26.4)
+    inflow.add(
+        veh_type="humanbus_lane1",
+        edge="highway_0",
+        #probability=0.1,
+        vehs_per_hour=486,
+        departLane=1,
+        departSpeed=26.4)
+    inflow.add(
+        veh_type="humanbus_lane0",
+        edge="highway_0",
+        #probability=0.1,
+        vehs_per_hour=486,
+        departLane=0,
+        departSpeed=26.4)
+    
+    inflow.add(
+        veh_type="humantruck_lane2",
+        edge="highway_0",
+        #probability=0.05,
+        vehs_per_hour=486,
+        departLane=2,
+        departSpeed=25)
+    inflow.add(
+        veh_type="humantruck_lane1",
+        edge="highway_0",
+        #probability=0.05,
+        vehs_per_hour=486,
+        departLane=1,
+        departSpeed=25)
+    inflow.add(
+        veh_type="humantruck_lane0",
+        edge="highway_0",
+        #probability=0.05,
+        vehs_per_hour=486,
+        departLane=0,
+        departSpeed=25)
+ 
+    initial_config = InitialConfig(spacing="uniform", shuffle=True)# initial position in road
+ 
+    scenario = HighwayScenario(#3:110-120 2:90-120 3:90-120 4:60-120 [G1503 2019.5 daily car:180000 bus/truck:70000]
+        name="highway",
+        vehicles=vehicles,
+        net_params=NetParams(
+                inflows=inflow,
+                additional_params={
+                    'length': 6000,
+                    'lanes': 4,
+                    'speed_limit': 33.3,
+                    'num_edges': 1
+                }),
+        initial_config=initial_config)
+    
+ 
+    env = LaneChangeAccelEnv(env_params, sim_params, scenario)
+ 
+    return Experiment(env)
+ 
+ 
+if __name__ == "__main__":
+    # import the experiment variable
+    exp = highway_example()
+ 
+    # run for a set number of rollouts / time steps
+    #exp.run(1, 1000, convert_to_csv = False)
+    exp.run(1, 5000, convert_to_csv = True)
+`
+The function of restart_instance here is to avoid the previously unclosed SUMO window. After setting to True, each time the script is run, the window will be closed and reopened after clicking the play button of the simulation interface. sim_step is the interval time for recording coordinates, here is 0.1s to record the current coordinates of all vehicles on the road; emission_path determines the save location of the coordinate file, after the operation ends naturally (there will be a longer recording time after the vehicle runs) A csv and an xml file will be found in the flow/data/ directory.
+The subsequent parameters are the parameters that take effect for the network simulation function, and a "detection range circle" will be displayed around each vehicle in the network simulation. It is not involved in this simulation, and the above parameters can be maintained.
 
+（2）Add an existing vehicle：
+`vehicles = VehicleParams()
+    
+    vehicles.add(
+        veh_id="rlcar",# Lincoln MKC 4552*1864*1654
+        length = 4.552,
+        acceleration_controller=(RLController, {}),
+        car_following_params=SumoCarFollowingParams(
+            speed_mode="obey_safe_speed",
+        ),
+        initial_speed=0,
+        num_vehicles=1)
+    
+    vehicles.add(
+        veh_id="humancar",# Volkswagen LAVIDA 4670*1806*1474 max:120km/h
+        length = 4.67,
+        #v0 : desirable velocity, in m/s (default: 30) in flow/flow/controllers/car_following_models.py 352
+        acceleration_controller=(IDMController,{'v0':32}),# 115km/h
+        lane_change_controller=(SimLaneChangeController, {}),
+        lane_change_params=SumoLaneChangeParams(
+            lane_change_mode="strategic",# Human cars make lane changes in accordance with SUMO to provide speed boosts
+        ),
+        num_vehicles=1)
+`
+The function of this section is to add vehicles on the existing road at the beginning of the simulation, and the length of this type of vehicle set here will also act in the subsequent added Project. Vehicles will be evenly distributed on the road at equal intervals to avoid a situation where there are no cars on the road at the beginning of the simulation (to allow the traffic to mix well).
+
+vehicles is the created object. The parameter veh_id in add represents the type of vehicle, which needs to be the same as the type name of the corresponding vehicle when the Project is created later. The type name in the final generated coordinate file is also a key variable for search traversal.
+
+length is the length of the vehicle in m.
+
+acceleration_controller is the acceleration control logic of this kind of vehicle. You can choose acceleration control logic such as RL and IDM, and set variables such as initial vehicle speed (unit: m/s) in the form of a dictionary in each acceleration control logic function (for details, please refer to flow VehicleParams source code in params.py in the /flow/core directory).
+
+ car_following_params sets the following logic for this type of vehicle. The speed_mode includes "right_of_way" (default), "obey_safe_speed", "no_collide", "aggressive", and "all_checks". For details, see flow/flow/core VehicleParams source code in params.py in the directory.
+
+lane_change_controller sets the lane-changing logic of this vehicle. The specific lane-changing parameters are set in lane_change_params. Lane_change_mode also includes options such as "no_lat_collide" (default), "strategic", and "aggressive". For details, see params.py .
+
+initial_speed sets the initial speed of these existing vehicles on the road, regardless of the departure speed of the subsequent traffic added in the Project. num_vehicles is to add the number of existing vehicles, because my simulation does not depend on the initial vehicle, so I set a random 1.
+
+Because the project has not yet set the upper and lower limits of the speed of each lane, and can only set the maximum speed of the four lanes at the same time, I choose to establish different types of traffic flows with different initial speeds and expected speeds on each lane. In c will be reflected.
+
+（3）Add input stream
+`    
+inflow = InFlows()
+inflow.add(
+        veh_type="rlcar",
+        edge="highway_0",
+        #probability=0.025,# 0.25 probability for emitting a vehicle each second (not together with vehsPerHour or period)
+        vehs_per_hour=250,
+        departLane=3,# the index of the lane, starting with rightmost=0
+        departSpeed=30)
+`
+The simulation model cannot have only the vehicles on the road without input, so the Inflow() function is prepared for establishing the input traffic flow on the road.
+
+Inflow is the created object. The veh_type in the add function corresponds to the traffic flow created by VehicleParams() above, and the vehicle type created above must be used.
+
+The edge is the road end that selects the vehicle input, _0 is generally the left side, and the other side is naturally _1.
+
+Regarding the traffic flow of the input traffic flow, there are two ways to set the traffic flow: probability and vehs_per_hour. Probabilty is a probability-based traffic generation method, which represents the probability of generating traffic per second. The maximum is 1, and it can only be 1. Therefore, this generation method has a generation limit problem. In order to solve this kind of less free Flow Project also uses TraCI to give the parameter of vehs_per_hour, which is the number of input vehicles per hour.
+
+departLane is to select the initial lane of this kind of traffic flow, and it has options of "free", "random", "allowed", "best" and "first" (see http://sumo.dlr.de/wiki for details). /Definition_of_Vehicles,_Vehicle_Types,_and_Routes), but here you can also choose the number of lanes, such as four lanes is 0 to 3 from left to right, so that the car will continue to spawn in this lane.
+
+departSpeed ​​is the departure speed of this kind of traffic, in m/s.
+
+（4）Setting up the road scene
+`
+initial_config = InitialConfig(spacing="uniform", shuffle=True)# initial position in road
+ 
+    scenario = HighwayScenario(#3:110-120 2:90-120 3:90-120 4:60-120 [G1503 2019.5 daily car:180000 bus/truck:70000]
+        name="highway",
+        vehicles=vehicles,
+        net_params=NetParams(
+                inflows=inflow,
+                additional_params={
+                    'length': 6000,
+                    'lanes': 4,
+                    'speed_limit': 33.3,
+                    'num_edges': 1
+                }),
+        initial_config=initial_config)
+    
+ 
+    env = LaneChangeAccelEnv(env_params, sim_params, scenario)
 `
 HighwayScenario() can be seen that this is a function specially set up for the one-way four-lane highway scene. Because the Flow Project is intended to train reinforcement learning vehicles in simple scenarios (for complex scenarios, please consider games such as GTA), there is no overly complicated vehicle network.
 
 Among them, inflow can input the previously created InFlow() object, length refers to the length of the road (unit: m, do not be too long, otherwise the data recording after running will be interrupted), lanes is the number of lanes, which can be increased or decreased, speed_limit is the maximum speed (unit: m/s) that vehicles on each lane of the entire road will not exceed, and num_edges refers to the number of ports on the road.
-# Getting involved
 
-We welcome your contributions.
+（5）Finally：start simulation
 
-# Citing
+`exp.run(1, 5000, convert_to_csv = True)`
+This sentence in the main function represents the start of the simulation, where 1 refers to the number of simulations (not the start time of the simulation!!), 5000 refers to the number of seconds of the simulation (if it is too long, the data record will be interrupted), convert_to_csv refers to Whether to automatically convert the xml file generated by the simulation to a csv file. If the simulation network must be large, do not choose automatic conversion, it will collapse and occupy a lot of memory.
 
-If you use this for academic research, you are highly encouraged to cite our paper:
-
-The Scanner of Heterogeneous Traffic Flow in Smart Cities by an Updating Model of Connected and Automated Vehicles
