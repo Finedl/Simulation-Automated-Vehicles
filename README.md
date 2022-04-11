@@ -27,13 +27,13 @@ source activate flow
 pip install -e .
 `
 3. Check if SUMO is installed successfully:
-which sumo
-sumo --version
-sumo-gui
+`which sumo`
+`sumo --version`
+`sumo-gui`
 4. Check if the project is installed successfully:
-`source activate flow
-python examples/sumo/sugiyama.py
-`
+`source activate flow`
+`python examples/sumo/sugiyama.py`
+
 # Qusetion
 There is a high probability that this step is unsuccessful, or it is unsuccessful after restarting, there will be a problem that the flow cannot be activated, or an error will be reported due to the Python version. The default python version of my system is Python2 under /usr/bin .7, but the Flow Project relies on python3.5 in the anaconda directory, and casually changing the system environment variables can easily break many framework dependencies. The solution is to run the following three sentences before running the script of Flow Project for the first time every time you boot up (the UBUNTU in the third line is changed to your home directory name):
 `
