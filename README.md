@@ -36,7 +36,6 @@ pip install -e .
 `sumo-gui`
 
 4. Check if the project is installed successfully:
-5. 
 `source activate flow`
 
 `python examples/sumo/sugiyama.py`
