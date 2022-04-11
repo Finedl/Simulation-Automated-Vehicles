@@ -20,6 +20,8 @@ Only in the Ubuntu
 1. Install anaconda2 (refer to anaconda official website https://www.anaconda.com/), then create a dedicated operating environment in the flow directory and install dependencies
 `
 conda env create -f environment.yml
+`
+`
 source activate flow
 `
 2. Install Project and SUMO:
@@ -28,17 +30,24 @@ pip install -e .
 `
 3. Check if SUMO is installed successfully:
 `which sumo`
+
 `sumo --version`
+
 `sumo-gui`
+
 4. Check if the project is installed successfully:
+5. 
 `source activate flow`
+
 `python examples/sumo/sugiyama.py`
 
 # Qusetion
 There is a high probability that this step is unsuccessful, or it is unsuccessful after restarting, there will be a problem that the flow cannot be activated, or an error will be reported due to the Python version. The default python version of my system is Python2 under /usr/bin .7, but the Flow Project relies on python3.5 in the anaconda directory, and casually changing the system environment variables can easily break many framework dependencies. The solution is to run the following three sentences before running the script of Flow Project for the first time every time you boot up (the UBUNTU in the third line is changed to your home directory name):
 `
-export PATH=/usr/local/anaconda2/bin:$PATH
-source activate flow
+export PATH=/usr/local/anaconda2/bin:$PATH`
+`
+source activate flow`
+`
 export PYTHONPATH="/home/UBUNTU/.conda/envs/flow/lib/python3.5/site-packages:$PYTHONPATH"
 `
 # How to secondary development?
@@ -172,7 +181,8 @@ def add(self,
         self.types.append({"veh_id": veh_id, "type_params": type_params})
 `
 # Change the Python script
-highway.py:
+
+(1) highway.py:
 `
 """Example of an open multi-lane network with human-driven vehicles."""
  
@@ -184,10 +194,7 @@ from flow.core.params import VehicleParams
 from flow.envs.loop.lane_changing import LaneChangeAccelEnv, \
     ADDITIONAL_ENV_PARAMS
 from flow.scenarios.highway import HighwayScenario, ADDITIONAL_NET_PARAMS
- 
 #from flow.core.params import SimParams
- 
- 
 def highway_example(render=None):
     """
     Perform a simulation of vehicles on a highway.
@@ -360,12 +367,14 @@ if __name__ == "__main__":
  
     # run for a set number of rollouts / time steps
     #exp.run(1, 1000, convert_to_csv = False)
-    exp.run(1, 5000, convert_to_csv = True)
+    exp.run(1, 5000, convert_to_csv = True) 
 `
+
 The function of restart_instance here is to avoid the previously unclosed SUMO window. After setting to True, each time the script is run, the window will be closed and reopened after clicking the play button of the simulation interface. sim_step is the interval time for recording coordinates, here is 0.1s to record the current coordinates of all vehicles on the road; emission_path determines the save location of the coordinate file, after the operation ends naturally (there will be a longer recording time after the vehicle runs) A csv and an xml file will be found in the flow/data/ directory.
 The subsequent parameters are the parameters that take effect for the network simulation function, and a "detection range circle" will be displayed around each vehicle in the network simulation. It is not involved in this simulation, and the above parameters can be maintained.
 
 （2）Add an existing vehicle：
+
 `vehicles = VehicleParams()
     
     vehicles.add(
@@ -389,6 +398,7 @@ The subsequent parameters are the parameters that take effect for the network si
         ),
         num_vehicles=1)
 `
+
 The function of this section is to add vehicles on the existing road at the beginning of the simulation, and the length of this type of vehicle set here will also act in the subsequent added Project. Vehicles will be evenly distributed on the road at equal intervals to avoid a situation where there are no cars on the road at the beginning of the simulation (to allow the traffic to mix well).
 
 vehicles is the created object. The parameter veh_id in add represents the type of vehicle, which needs to be the same as the type name of the corresponding vehicle when the Project is created later. The type name in the final generated coordinate file is also a key variable for search traversal.
@@ -405,7 +415,7 @@ initial_speed sets the initial speed of these existing vehicles on the road, reg
 
 Because the project has not yet set the upper and lower limits of the speed of each lane, and can only set the maximum speed of the four lanes at the same time, I choose to establish different types of traffic flows with different initial speeds and expected speeds on each lane. In c will be reflected.
 
-（3）Add input stream
+（3）Add input stream:
 `    
 inflow = InFlows()
 inflow.add(
@@ -428,7 +438,7 @@ departLane is to select the initial lane of this kind of traffic flow, and it ha
 
 departSpeed ​​is the departure speed of this kind of traffic, in m/s.
 
-（4）Setting up the road scene
+（4）Setting up the road scene:
 `
 initial_config = InitialConfig(spacing="uniform", shuffle=True)# initial position in road
  
@@ -448,11 +458,12 @@ initial_config = InitialConfig(spacing="uniform", shuffle=True)# initial positio
  
     env = LaneChangeAccelEnv(env_params, sim_params, scenario)
 `
+
 HighwayScenario() can be seen that this is a function specially set up for the one-way four-lane highway scene. Because the Flow Project is intended to train reinforcement learning vehicles in simple scenarios (for complex scenarios, please consider games such as GTA), there is no overly complicated vehicle network.
 
 Among them, inflow can input the previously created InFlow() object, length refers to the length of the road (unit: m, do not be too long, otherwise the data recording after running will be interrupted), lanes is the number of lanes, which can be increased or decreased, speed_limit is the maximum speed (unit: m/s) that vehicles on each lane of the entire road will not exceed, and num_edges refers to the number of ports on the road.
 
-（5）Finally：start simulation
+（5）Finally：start simulation:
 
 `exp.run(1, 5000, convert_to_csv = True)`
 This sentence in the main function represents the start of the simulation, where 1 refers to the number of simulations (not the start time of the simulation!!), 5000 refers to the number of seconds of the simulation (if it is too long, the data record will be interrupted), convert_to_csv refers to Whether to automatically convert the xml file generated by the simulation to a csv file. If the simulation network must be large, do not choose automatic conversion, it will collapse and occupy a lot of memory.
