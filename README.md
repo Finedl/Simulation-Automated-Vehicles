@@ -18,25 +18,29 @@ The Scanner of Heterogeneous Traffic Flow in Smart Cities by an Updating Model o
 Only in the Ubuntu
 
 1. Install anaconda2 (refer to anaconda official website https://www.anaconda.com/), then create a dedicated operating environment in the flow directory and install dependencies
+`
 conda env create -f environment.yml
 source activate flow
+`
 2. Install Project and SUMO:
+`
 pip install -e .
+`
 3. Check if SUMO is installed successfully:
 which sumo
 sumo --version
 sumo-gui
 4. Check if the project is installed successfully:
-source activate flow
+`source activate flow
 python examples/sumo/sugiyama.py
-
+`
 # Qusetion
 There is a high probability that this step is unsuccessful, or it is unsuccessful after restarting, there will be a problem that the flow cannot be activated, or an error will be reported due to the Python version. The default python version of my system is Python2 under /usr/bin .7, but the Flow Project relies on python3.5 in the anaconda directory, and casually changing the system environment variables can easily break many framework dependencies. The solution is to run the following three sentences before running the script of Flow Project for the first time every time you boot up (the UBUNTU in the third line is changed to your home directory name):
-
+`
 export PATH=/usr/local/anaconda2/bin:$PATH
 source activate flow
 export PYTHONPATH="/home/UBUNTU/.conda/envs/flow/lib/python3.5/site-packages:$PYTHONPATH"
-
+`
 # How to secondary development?
 
 After this, enter python examples/sumo/sugiyama.py or other scripts under examples/sumo/ in Terminal in the flow directory to successfully run the simulation, which also means that flow is installed.
