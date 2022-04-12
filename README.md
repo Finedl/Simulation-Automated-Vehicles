@@ -1,6 +1,7 @@
 
 # Simulation-Automated-Vehicles
 we presented the updating Connected and Automated Vehicles (CAVs) model as the scanner of heterogeneous traffic flow, which uses various sensors to detect the characteristics of traffic flow in several traffic scenes on the roads. The model contains the hardware platform, software algorithm of CAV, and the analysis of traffic flow detection and simulation by Flow Project, where the driving of vehicles is mainly controlled by Reinforcement Learning (RL). Finally, the effectiveness of the proposed model and the corresponding swarm intelligence strategy is evaluated through simulation experiments. The results showed that the traffic flow scanning, tracking, and data recording performed continuously by CAVs are effective. The increase in the penetration rate of CAVs in the overall traffic flow has a significant effect on vehicle detection and identification. In addition, the vehicle occlusion rate is independent of the CAV lane position in all cases. The complete street scanner is a new technology that realizes the perception of the human settlement environment with the help of the Internet of Vehicles based on 5G communications and sensors. Although there are some shortcomings in the experiment, it still provides an experimental reference for the development of smart vehicles.
+
 ![image](https://user-images.githubusercontent.com/67223039/162754304-7778f415-21e5-42fb-b89e-7c1229ca7bcd.png)
 
 # Getting involved
@@ -11,7 +12,11 @@ We welcome your contributions.
 
 If you use this for academic research, you are highly encouraged to cite our paper:
 
-The Scanner of Heterogeneous Traffic Flow in Smart Cities by an Updating Model of Connected and Automated Vehicles
+Dongliang Chen, Hongyong Huang,Yuchao Zheng, Piotr Gawkowski, Haibin Lv, and Zhihan Lv, " Traffic Flow of Connected and Automated Vehicles in Smart Cities: Human-Centric," The 7th IEEE International Conference on Internet of People  (2021). 
+
+A paper that is being submitted but not published：
+
+Dongliang Chen, Hongyong Huang,Yuchao Zheng, Piotr Gawkowski, Haibin Lv, and Zhihan Lv, " The Scanner of Heterogeneous Traffic Flow in Smart Cities by an Updating Model of Connected and Automated Vehicles." 
 
 # How to use？
 
